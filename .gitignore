@@ -1,0 +1,28 @@
+node_modules/
+__pycache__/
+*.pyc
+
+# 运行时自动生成的中间文件（删掉不影响任何功能）
+mapinfo.json
+leveldata.json
+live_gen.json
+last_board.txt
+watch_state.json
+.plan_expr.js
+leveldata.seed_*.board.json
+nopark_*.plan.json
+diag_h*.plan.json
+
+# oneclick 编排器产生的运行产物
+auto_*.plan.json
+auto_*.board.json
+auto_*.solve.json
+.oneclick_*.json
+.oneclick_start.js
+logs/
+
+# 本地手工调试产物：牌面 dump 与大方案（单份 20-64KB，可由读牌+求解重新生成）
+/*.plan.json
+/*.board.json
+/raw*.json
+/now.plan.json

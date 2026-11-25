@@ -1,0 +1,1478 @@
+[
+ {
+  "step": 0,
+  "kind": "board",
+  "id": "24-28-48",
+  "type": 3
+ },
+ {
+  "step": 1,
+  "kind": "board",
+  "id": "11-52-58",
+  "type": 3
+ },
+ {
+  "step": 2,
+  "kind": "board",
+  "id": "21-16-52",
+  "type": 3
+ },
+ {
+  "step": 3,
+  "kind": "board",
+  "id": "24-20-8",
+  "type": 9
+ },
+ {
+  "step": 4,
+  "kind": "board",
+  "id": "23-40-44",
+  "type": 9
+ },
+ {
+  "step": 5,
+  "kind": "board",
+  "id": "21-32-36",
+  "type": 9
+ },
+ {
+  "step": 6,
+  "kind": "board",
+  "id": "22-44-32",
+  "type": 8
+ },
+ {
+  "step": 7,
+  "kind": "board",
+  "id": "2-8-4",
+  "type": 8
+ },
+ {
+  "step": 8,
+  "kind": "board",
+  "id": "21-8-20",
+  "type": 8
+ },
+ {
+  "step": 9,
+  "kind": "board",
+  "id": "22-12-32",
+  "type": 11
+ },
+ {
+  "step": 10,
+  "kind": "board",
+  "id": "21-32-28",
+  "type": 11
+ },
+ {
+  "step": 11,
+  "kind": "board",
+  "id": "21-48-28",
+  "type": 11
+ },
+ {
+  "step": 12,
+  "kind": "board",
+  "id": "24-28-16",
+  "type": 16
+ },
+ {
+  "step": 13,
+  "kind": "board",
+  "id": "23-40-20",
+  "type": 16
+ },
+ {
+  "step": 14,
+  "kind": "board",
+  "id": "24-36-8",
+  "type": 14
+ },
+ {
+  "step": 15,
+  "kind": "board",
+  "id": "23-24-52",
+  "type": 15
+ },
+ {
+  "step": 16,
+  "kind": "board",
+  "id": "1-4-0",
+  "type": 15
+ },
+ {
+  "step": 17,
+  "kind": "board",
+  "id": "22-52-40",
+  "type": 4
+ },
+ {
+  "step": 18,
+  "kind": "board",
+  "id": "21-48-36",
+  "type": 15
+ },
+ {
+  "step": 19,
+  "kind": "board",
+  "id": "2-48-4",
+  "type": 4
+ },
+ {
+  "step": 20,
+  "kind": "board",
+  "id": "11-4-58",
+  "type": 4
+ },
+ {
+  "step": 21,
+  "kind": "board",
+  "id": "1-52-0",
+  "type": 14
+ },
+ {
+  "step": 22,
+  "kind": "board",
+  "id": "21-24-36",
+  "type": 2
+ },
+ {
+  "step": 23,
+  "kind": "board",
+  "id": "22-4-40",
+  "type": 2
+ },
+ {
+  "step": 24,
+  "kind": "board",
+  "id": "2-48-12",
+  "type": 2
+ },
+ {
+  "step": 25,
+  "kind": "board",
+  "id": "3-16-60",
+  "type": 6
+ },
+ {
+  "step": 26,
+  "kind": "board",
+  "id": "10-4-57",
+  "type": 6
+ },
+ {
+  "step": 27,
+  "kind": "board",
+  "id": "21-16-36",
+  "type": 6
+ },
+ {
+  "step": 28,
+  "kind": "board",
+  "id": "20-20-36",
+  "type": 14
+ },
+ {
+  "step": 29,
+  "kind": "board",
+  "id": "2-12-64",
+  "type": 11
+ },
+ {
+  "step": 30,
+  "kind": "board",
+  "id": "10-52-57",
+  "type": 10
+ },
+ {
+  "step": 31,
+  "kind": "board",
+  "id": "3-40-60",
+  "type": 10
+ },
+ {
+  "step": 32,
+  "kind": "board",
+  "id": "23-40-4",
+  "type": 10
+ },
+ {
+  "step": 33,
+  "kind": "board",
+  "id": "9-4-56",
+  "type": 12
+ },
+ {
+  "step": 34,
+  "kind": "board",
+  "id": "23-32-4",
+  "type": 12
+ },
+ {
+  "step": 35,
+  "kind": "board",
+  "id": "3-32-60",
+  "type": 13
+ },
+ {
+  "step": 36,
+  "kind": "board",
+  "id": "2-36-64",
+  "type": 12
+ },
+ {
+  "step": 37,
+  "kind": "board",
+  "id": "23-32-52",
+  "type": 13
+ },
+ {
+  "step": 38,
+  "kind": "board",
+  "id": "21-16-44",
+  "type": 13
+ },
+ {
+  "step": 39,
+  "kind": "board",
+  "id": "3-24-60",
+  "type": 4
+ },
+ {
+  "step": 40,
+  "kind": "board",
+  "id": "2-8-12",
+  "type": 1
+ },
+ {
+  "step": 41,
+  "kind": "board",
+  "id": "23-24-44",
+  "type": 1
+ },
+ {
+  "step": 42,
+  "kind": "board",
+  "id": "23-40-52",
+  "type": 1
+ },
+ {
+  "step": 43,
+  "kind": "board",
+  "id": "23-32-44",
+  "type": 7
+ },
+ {
+  "step": 44,
+  "kind": "board",
+  "id": "21-40-36",
+  "type": 7
+ },
+ {
+  "step": 45,
+  "kind": "board",
+  "id": "23-24-4",
+  "type": 7
+ },
+ {
+  "step": 46,
+  "kind": "board",
+  "id": "21-40-28",
+  "type": 9
+ },
+ {
+  "step": 47,
+  "kind": "board",
+  "id": "20-20-52",
+  "type": 9
+ },
+ {
+  "step": 48,
+  "kind": "board",
+  "id": "21-8-36",
+  "type": 9
+ },
+ {
+  "step": 49,
+  "kind": "board",
+  "id": "9-52-56",
+  "type": 6
+ },
+ {
+  "step": 50,
+  "kind": "board",
+  "id": "8-4-55",
+  "type": 6
+ },
+ {
+  "step": 51,
+  "kind": "board",
+  "id": "21-24-28",
+  "type": 6
+ },
+ {
+  "step": 52,
+  "kind": "board",
+  "id": "8-52-55",
+  "type": 3
+ },
+ {
+  "step": 53,
+  "kind": "board",
+  "id": "2-44-64",
+  "type": 3
+ },
+ {
+  "step": 54,
+  "kind": "board",
+  "id": "23-24-20",
+  "type": 3
+ },
+ {
+  "step": 55,
+  "kind": "board",
+  "id": "23-32-20",
+  "type": 1
+ },
+ {
+  "step": 56,
+  "kind": "board",
+  "id": "20-28-36",
+  "type": 1
+ },
+ {
+  "step": 57,
+  "kind": "board",
+  "id": "23-32-12",
+  "type": 1
+ },
+ {
+  "step": 58,
+  "kind": "board",
+  "id": "23-24-12",
+  "type": 2
+ },
+ {
+  "step": 59,
+  "kind": "board",
+  "id": "23-40-12",
+  "type": 2
+ },
+ {
+  "step": 60,
+  "kind": "board",
+  "id": "21-16-12",
+  "type": 2
+ },
+ {
+  "step": 61,
+  "kind": "board",
+  "id": "1-44-60",
+  "type": 11
+ },
+ {
+  "step": 62,
+  "kind": "board",
+  "id": "21-16-4",
+  "type": 1
+ },
+ {
+  "step": 63,
+  "kind": "board",
+  "id": "20-20-8",
+  "type": 16
+ },
+ {
+  "step": 64,
+  "kind": "board",
+  "id": "2-20-64",
+  "type": 10
+ },
+ {
+  "step": 65,
+  "kind": "board",
+  "id": "22-36-52",
+  "type": 10
+ },
+ {
+  "step": 66,
+  "kind": "board",
+  "id": "20-20-44",
+  "type": 10
+ },
+ {
+  "step": 67,
+  "kind": "board",
+  "id": "7-4-54",
+  "type": 13
+ },
+ {
+  "step": 68,
+  "kind": "board",
+  "id": "2-28-64",
+  "type": 13
+ },
+ {
+  "step": 69,
+  "kind": "board",
+  "id": "20-44-32",
+  "type": 13
+ },
+ {
+  "step": 70,
+  "kind": "board",
+  "id": "7-52-54",
+  "type": 12
+ },
+ {
+  "step": 71,
+  "kind": "board",
+  "id": "22-28-52",
+  "type": 12
+ },
+ {
+  "step": 72,
+  "kind": "board",
+  "id": "20-36-36",
+  "type": 12
+ },
+ {
+  "step": 73,
+  "kind": "board",
+  "id": "6-52-53",
+  "type": 14
+ },
+ {
+  "step": 74,
+  "kind": "board",
+  "id": "6-4-53",
+  "type": 14
+ },
+ {
+  "step": 75,
+  "kind": "board",
+  "id": "5-4-52",
+  "type": 11
+ },
+ {
+  "step": 76,
+  "kind": "board",
+  "id": "1-4-12",
+  "type": 14
+ },
+ {
+  "step": 77,
+  "kind": "board",
+  "id": "5-52-52",
+  "type": 8
+ },
+ {
+  "step": 78,
+  "kind": "board",
+  "id": "21-8-28",
+  "type": 8
+ },
+ {
+  "step": 79,
+  "kind": "board",
+  "id": "21-16-28",
+  "type": 8
+ },
+ {
+  "step": 80,
+  "kind": "board",
+  "id": "22-36-16",
+  "type": 9
+ },
+ {
+  "step": 81,
+  "kind": "board",
+  "id": "22-36-8",
+  "type": 9
+ },
+ {
+  "step": 82,
+  "kind": "board",
+  "id": "22-36-44",
+  "type": 9
+ },
+ {
+  "step": 83,
+  "kind": "board",
+  "id": "22-28-44",
+  "type": 15
+ },
+ {
+  "step": 84,
+  "kind": "board",
+  "id": "20-36-24",
+  "type": 15
+ },
+ {
+  "step": 85,
+  "kind": "board",
+  "id": "21-32-48",
+  "type": 13
+ },
+ {
+  "step": 86,
+  "kind": "board",
+  "id": "20-28-44",
+  "type": 1
+ },
+ {
+  "step": 87,
+  "kind": "board",
+  "id": "19-24-40",
+  "type": 15
+ },
+ {
+  "step": 88,
+  "kind": "board",
+  "id": "19-24-48",
+  "type": 4
+ },
+ {
+  "step": 89,
+  "kind": "board",
+  "id": "21-48-20",
+  "type": 7
+ },
+ {
+  "step": 90,
+  "kind": "board",
+  "id": "20-44-24",
+  "type": 4
+ },
+ {
+  "step": 91,
+  "kind": "board",
+  "id": "21-16-20",
+  "type": 2
+ },
+ {
+  "step": 92,
+  "kind": "board",
+  "id": "19-44-28",
+  "type": 16
+ },
+ {
+  "step": 93,
+  "kind": "board",
+  "id": "18-44-24",
+  "type": 1
+ },
+ {
+  "step": 94,
+  "kind": "board",
+  "id": "18-44-32",
+  "type": 2
+ },
+ {
+  "step": 95,
+  "kind": "board",
+  "id": "19-32-40",
+  "type": 2
+ },
+ {
+  "step": 96,
+  "kind": "board",
+  "id": "17-44-28",
+  "type": 15
+ },
+ {
+  "step": 97,
+  "kind": "board",
+  "id": "16-44-32",
+  "type": 7
+ },
+ {
+  "step": 98,
+  "kind": "board",
+  "id": "16-44-24",
+  "type": 6
+ },
+ {
+  "step": 99,
+  "kind": "board",
+  "id": "15-44-28",
+  "type": 7
+ },
+ {
+  "step": 100,
+  "kind": "board",
+  "id": "20-28-24",
+  "type": 6
+ },
+ {
+  "step": 101,
+  "kind": "board",
+  "id": "18-28-44",
+  "type": 1
+ },
+ {
+  "step": 102,
+  "kind": "board",
+  "id": "17-24-40",
+  "type": 6
+ },
+ {
+  "step": 103,
+  "kind": "board",
+  "id": "1-20-60",
+  "type": 15
+ },
+ {
+  "step": 104,
+  "kind": "board",
+  "id": "14-44-32",
+  "type": 16
+ },
+ {
+  "step": 105,
+  "kind": "board",
+  "id": "17-32-40",
+  "type": 16
+ },
+ {
+  "step": 106,
+  "kind": "board",
+  "id": "17-24-48",
+  "type": 14
+ },
+ {
+  "step": 107,
+  "kind": "board",
+  "id": "16-28-44",
+  "type": 4
+ },
+ {
+  "step": 108,
+  "kind": "board",
+  "id": "15-24-40",
+  "type": 15
+ },
+ {
+  "step": 109,
+  "kind": "board",
+  "id": "1-52-12",
+  "type": 10
+ },
+ {
+  "step": 110,
+  "kind": "board",
+  "id": "15-32-40",
+  "type": 10
+ },
+ {
+  "step": 111,
+  "kind": "board",
+  "id": "22-28-8",
+  "type": 10
+ },
+ {
+  "step": 112,
+  "kind": "board",
+  "id": "22-28-16",
+  "type": 13
+ },
+ {
+  "step": 113,
+  "kind": "board",
+  "id": "15-24-48",
+  "type": 7
+ },
+ {
+  "step": 114,
+  "kind": "board",
+  "id": "14-28-44",
+  "type": 13
+ },
+ {
+  "step": 115,
+  "kind": "board",
+  "id": "21-32-12",
+  "type": 3
+ },
+ {
+  "step": 116,
+  "kind": "board",
+  "id": "14-44-24",
+  "type": 3
+ },
+ {
+  "step": 117,
+  "kind": "board",
+  "id": "13-24-40",
+  "type": 3
+ },
+ {
+  "step": 118,
+  "kind": "board",
+  "id": "20-12-24",
+  "type": 12
+ },
+ {
+  "step": 119,
+  "kind": "board",
+  "id": "1-36-60",
+  "type": 12
+ },
+ {
+  "step": 120,
+  "kind": "board",
+  "id": "20-20-16",
+  "type": 12
+ },
+ {
+  "step": 121,
+  "kind": "board",
+  "id": "20-20-24",
+  "type": 1
+ },
+ {
+  "step": 122,
+  "kind": "board",
+  "id": "20-28-16",
+  "type": 11
+ },
+ {
+  "step": 123,
+  "kind": "board",
+  "id": "19-24-12",
+  "type": 1
+ },
+ {
+  "step": 124,
+  "kind": "board",
+  "id": "13-44-28",
+  "type": 7
+ },
+ {
+  "step": 125,
+  "kind": "board",
+  "id": "19-24-20",
+  "type": 14
+ },
+ {
+  "step": 126,
+  "kind": "board",
+  "id": "19-32-20",
+  "type": 14
+ },
+ {
+  "step": 127,
+  "kind": "board",
+  "id": "18-28-16",
+  "type": 4
+ },
+ {
+  "step": 128,
+  "kind": "board",
+  "id": "13-24-48",
+  "type": 11
+ },
+ {
+  "step": 129,
+  "kind": "board",
+  "id": "17-32-20",
+  "type": 11
+ },
+ {
+  "step": 130,
+  "kind": "board",
+  "id": "13-32-40",
+  "type": 16
+ },
+ {
+  "step": 131,
+  "kind": "board",
+  "id": "12-28-44",
+  "type": 16
+ },
+ {
+  "step": 132,
+  "kind": "board",
+  "id": "11-24-40",
+  "type": 7
+ },
+ {
+  "step": 133,
+  "kind": "board",
+  "id": "17-24-20",
+  "type": 8
+ },
+ {
+  "step": 134,
+  "kind": "board",
+  "id": "12-44-24",
+  "type": 8
+ },
+ {
+  "step": 135,
+  "kind": "board",
+  "id": "1-12-60",
+  "type": 8
+ },
+ {
+  "step": 136,
+  "kind": "board",
+  "id": "12-44-32",
+  "type": 9
+ },
+ {
+  "step": 137,
+  "kind": "board",
+  "id": "11-44-28",
+  "type": 12
+ },
+ {
+  "step": 138,
+  "kind": "board",
+  "id": "10-44-32",
+  "type": 4
+ },
+ {
+  "step": 139,
+  "kind": "board",
+  "id": "11-32-40",
+  "type": 12
+ },
+ {
+  "step": 140,
+  "kind": "board",
+  "id": "11-24-48",
+  "type": 12
+ },
+ {
+  "step": 141,
+  "kind": "board",
+  "id": "10-28-44",
+  "type": 6
+ },
+ {
+  "step": 142,
+  "kind": "board",
+  "id": "4-52-51",
+  "type": 6
+ },
+ {
+  "step": 143,
+  "kind": "board",
+  "id": "9-32-40",
+  "type": 6
+ },
+ {
+  "step": 144,
+  "kind": "board",
+  "id": "17-24-12",
+  "type": 1
+ },
+ {
+  "step": 145,
+  "kind": "board",
+  "id": "10-44-24",
+  "type": 2
+ },
+ {
+  "step": 146,
+  "kind": "board",
+  "id": "9-44-28",
+  "type": 14
+ },
+ {
+  "step": 147,
+  "kind": "board",
+  "id": "8-44-24",
+  "type": 16
+ },
+ {
+  "step": 148,
+  "kind": "board",
+  "id": "16-28-16",
+  "type": 2
+ },
+ {
+  "step": 149,
+  "kind": "board",
+  "id": "8-44-32",
+  "type": 2
+ },
+ {
+  "step": 150,
+  "kind": "board",
+  "id": "7-44-28",
+  "type": 14
+ },
+ {
+  "step": 151,
+  "kind": "board",
+  "id": "9-24-48",
+  "type": 14
+ },
+ {
+  "step": 152,
+  "kind": "board",
+  "id": "15-24-20",
+  "type": 9
+ },
+ {
+  "step": 153,
+  "kind": "board",
+  "id": "4-4-51",
+  "type": 13
+ },
+ {
+  "step": 154,
+  "kind": "board",
+  "id": "20-12-32",
+  "type": 13
+ },
+ {
+  "step": 155,
+  "kind": "board",
+  "id": "9-24-40",
+  "type": 10
+ },
+ {
+  "step": 156,
+  "kind": "board",
+  "id": "8-28-44",
+  "type": 9
+ },
+ {
+  "step": 157,
+  "kind": "board",
+  "id": "7-24-48",
+  "type": 13
+ },
+ {
+  "step": 158,
+  "kind": "board",
+  "id": "6-44-32",
+  "type": 10
+ },
+ {
+  "step": 159,
+  "kind": "board",
+  "id": "15-32-20",
+  "type": 12
+ },
+ {
+  "step": 160,
+  "kind": "board",
+  "id": "15-24-12",
+  "type": 11
+ },
+ {
+  "step": 161,
+  "kind": "board",
+  "id": "14-28-16",
+  "type": 7
+ },
+ {
+  "step": 162,
+  "kind": "board",
+  "id": "13-24-12",
+  "type": 10
+ },
+ {
+  "step": 163,
+  "kind": "board",
+  "id": "3-4-50",
+  "type": 7
+ },
+ {
+  "step": 164,
+  "kind": "board",
+  "id": "7-24-40",
+  "type": 7
+ },
+ {
+  "step": 165,
+  "kind": "board",
+  "id": "13-24-20",
+  "type": 1
+ },
+ {
+  "step": 166,
+  "kind": "board",
+  "id": "19-12-28",
+  "type": 8
+ },
+ {
+  "step": 167,
+  "kind": "board",
+  "id": "18-12-32",
+  "type": 1
+ },
+ {
+  "step": 168,
+  "kind": "board",
+  "id": "7-32-40",
+  "type": 8
+ },
+ {
+  "step": 169,
+  "kind": "board",
+  "id": "2-4-49",
+  "type": 8
+ },
+ {
+  "step": 170,
+  "kind": "board",
+  "id": "18-12-24",
+  "type": 3
+ },
+ {
+  "step": 171,
+  "kind": "board",
+  "id": "17-12-28",
+  "type": 2
+ },
+ {
+  "step": 172,
+  "kind": "board",
+  "id": "16-12-24",
+  "type": 2
+ },
+ {
+  "step": 173,
+  "kind": "board",
+  "id": "16-12-32",
+  "type": 14
+ },
+ {
+  "step": 174,
+  "kind": "board",
+  "id": "15-12-28",
+  "type": 2
+ },
+ {
+  "step": 175,
+  "kind": "board",
+  "id": "14-12-24",
+  "type": 14
+ },
+ {
+  "step": 176,
+  "kind": "board",
+  "id": "13-32-20",
+  "type": 8
+ },
+ {
+  "step": 177,
+  "kind": "board",
+  "id": "12-28-16",
+  "type": 14
+ },
+ {
+  "step": 178,
+  "kind": "board",
+  "id": "6-28-44",
+  "type": 12
+ },
+ {
+  "step": 179,
+  "kind": "board",
+  "id": "14-12-32",
+  "type": 8
+ },
+ {
+  "step": 180,
+  "kind": "board",
+  "id": "13-12-28",
+  "type": 12
+ },
+ {
+  "step": 181,
+  "kind": "board",
+  "id": "11-32-20",
+  "type": 3
+ },
+ {
+  "step": 182,
+  "kind": "board",
+  "id": "5-24-48",
+  "type": 3
+ },
+ {
+  "step": 183,
+  "kind": "board",
+  "id": "11-24-20",
+  "type": 11
+ },
+ {
+  "step": 184,
+  "kind": "board",
+  "id": "3-52-50",
+  "type": 16
+ },
+ {
+  "step": 185,
+  "kind": "board",
+  "id": "2-52-49",
+  "type": 8
+ },
+ {
+  "step": 186,
+  "kind": "board",
+  "id": "11-24-12",
+  "type": 6
+ },
+ {
+  "step": 187,
+  "kind": "board",
+  "id": "10-28-16",
+  "type": 3
+ },
+ {
+  "step": 188,
+  "kind": "board",
+  "id": "9-24-20",
+  "type": 11
+ },
+ {
+  "step": 189,
+  "kind": "board",
+  "id": "9-32-20",
+  "type": 16
+ },
+ {
+  "step": 190,
+  "kind": "board",
+  "id": "9-24-12",
+  "type": 15
+ },
+ {
+  "step": 191,
+  "kind": "board",
+  "id": "8-28-16",
+  "type": 6
+ },
+ {
+  "step": 192,
+  "kind": "board",
+  "id": "7-32-20",
+  "type": 16
+ },
+ {
+  "step": 193,
+  "kind": "board",
+  "id": "12-12-24",
+  "type": 3
+ },
+ {
+  "step": 194,
+  "kind": "board",
+  "id": "12-12-32",
+  "type": 4
+ },
+ {
+  "step": 195,
+  "kind": "board",
+  "id": "11-12-28",
+  "type": 6
+ },
+ {
+  "step": 196,
+  "kind": "board",
+  "id": "10-12-32",
+  "type": 3
+ },
+ {
+  "step": 197,
+  "kind": "board",
+  "id": "6-44-24",
+  "type": 15
+ },
+ {
+  "step": 198,
+  "kind": "board",
+  "id": "7-24-20",
+  "type": 9
+ },
+ {
+  "step": 199,
+  "kind": "board",
+  "id": "7-24-12",
+  "type": 1
+ },
+ {
+  "step": 200,
+  "kind": "board",
+  "id": "6-28-16",
+  "type": 10
+ },
+ {
+  "step": 201,
+  "kind": "board",
+  "id": "5-24-12",
+  "type": 15
+ },
+ {
+  "step": 202,
+  "kind": "board",
+  "id": "5-32-40",
+  "type": 4
+ },
+ {
+  "step": 203,
+  "kind": "board",
+  "id": "5-24-20",
+  "type": 4
+ },
+ {
+  "step": 204,
+  "kind": "board",
+  "id": "5-32-20",
+  "type": 9
+ },
+ {
+  "step": 205,
+  "kind": "board",
+  "id": "5-24-40",
+  "type": 16
+ },
+ {
+  "step": 206,
+  "kind": "board",
+  "id": "4-28-44",
+  "type": 7
+ },
+ {
+  "step": 207,
+  "kind": "board",
+  "id": "3-32-40",
+  "type": 9
+ },
+ {
+  "step": 208,
+  "kind": "board",
+  "id": "4-28-16",
+  "type": 7
+ },
+ {
+  "step": 209,
+  "kind": "board",
+  "id": "3-24-12",
+  "type": 7
+ },
+ {
+  "step": 210,
+  "kind": "board",
+  "id": "5-44-28",
+  "type": 16
+ },
+ {
+  "step": 211,
+  "kind": "board",
+  "id": "3-24-20",
+  "type": 2
+ },
+ {
+  "step": 212,
+  "kind": "board",
+  "id": "4-44-24",
+  "type": 2
+ },
+ {
+  "step": 213,
+  "kind": "board",
+  "id": "1-4-48",
+  "type": 2
+ },
+ {
+  "step": 214,
+  "kind": "board",
+  "id": "3-32-20",
+  "type": 10
+ },
+ {
+  "step": 215,
+  "kind": "board",
+  "id": "2-28-16",
+  "type": 3
+ },
+ {
+  "step": 216,
+  "kind": "board",
+  "id": "1-24-20",
+  "type": 16
+ },
+ {
+  "step": 217,
+  "kind": "board",
+  "id": "1-52-48",
+  "type": 4
+ },
+ {
+  "step": 218,
+  "kind": "board",
+  "id": "1-32-20",
+  "type": 4
+ },
+ {
+  "step": 219,
+  "kind": "board",
+  "id": "3-24-40",
+  "type": 4
+ },
+ {
+  "step": 220,
+  "kind": "board",
+  "id": "3-24-48",
+  "type": 3
+ },
+ {
+  "step": 221,
+  "kind": "board",
+  "id": "2-28-44",
+  "type": 15
+ },
+ {
+  "step": 222,
+  "kind": "board",
+  "id": "1-32-40",
+  "type": 3
+ },
+ {
+  "step": 223,
+  "kind": "board",
+  "id": "1-24-48",
+  "type": 10
+ },
+ {
+  "step": 224,
+  "kind": "board",
+  "id": "10-12-24",
+  "type": 8
+ },
+ {
+  "step": 225,
+  "kind": "board",
+  "id": "9-12-28",
+  "type": 12
+ },
+ {
+  "step": 226,
+  "kind": "board",
+  "id": "1-28-60",
+  "type": 12
+ },
+ {
+  "step": 227,
+  "kind": "board",
+  "id": "1-24-40",
+  "type": 12
+ },
+ {
+  "step": 228,
+  "kind": "board",
+  "id": "8-12-24",
+  "type": 15
+ },
+ {
+  "step": 229,
+  "kind": "board",
+  "id": "8-12-32",
+  "type": 11
+ },
+ {
+  "step": 230,
+  "kind": "board",
+  "id": "7-12-28",
+  "type": 15
+ },
+ {
+  "step": 231,
+  "kind": "board",
+  "id": "4-44-32",
+  "type": 11
+ },
+ {
+  "step": 232,
+  "kind": "board",
+  "id": "6-12-32",
+  "type": 11
+ },
+ {
+  "step": 233,
+  "kind": "board",
+  "id": "3-44-28",
+  "type": 15
+ },
+ {
+  "step": 234,
+  "kind": "board",
+  "id": "6-12-24",
+  "type": 13
+ },
+ {
+  "step": 235,
+  "kind": "board",
+  "id": "5-12-28",
+  "type": 6
+ },
+ {
+  "step": 236,
+  "kind": "board",
+  "id": "1-24-12",
+  "type": 6
+ },
+ {
+  "step": 237,
+  "kind": "board",
+  "id": "4-12-32",
+  "type": 6
+ },
+ {
+  "step": 238,
+  "kind": "board",
+  "id": "4-12-24",
+  "type": 15
+ },
+ {
+  "step": 239,
+  "kind": "board",
+  "id": "3-12-28",
+  "type": 13
+ },
+ {
+  "step": 240,
+  "kind": "board",
+  "id": "2-12-24",
+  "type": 13
+ },
+ {
+  "step": 241,
+  "kind": "board",
+  "id": "2-12-32",
+  "type": 8
+ },
+ {
+  "step": 242,
+  "kind": "board",
+  "id": "2-44-32",
+  "type": 8
+ },
+ {
+  "step": 243,
+  "kind": "board",
+  "id": "2-44-24",
+  "type": 1
+ },
+ {
+  "step": 244,
+  "kind": "board",
+  "id": "1-12-28",
+  "type": 1
+ },
+ {
+  "step": 245,
+  "kind": "board",
+  "id": "1-44-28",
+  "type": 15
+ }
+]
