@@ -334,5 +334,89 @@ getCrushBlockNum(){ let e=this.crushArray.length;
 
 判定原理：8/9 格允许的走法是 7 格的**超集**，所以放宽后解出的方案一定是合法方案，只是要拿 7 格规则再验一遍。反过来「放宽能解、收紧不能解」是**强证据**而非证明——所以 `diagnose.ps1` 的措辞是「先加一次 `-Sec7` 再下结论」。
 
+---
+
+## 9. 移出 / 洗牌 建模与「无限道具」（v1.3 ~ v1.4）
+
+§2 那张表是 v1.0 的 beam 系工具，其中 `beam3.js` / `sim_bot.js` / `fake_game.js` 已被下列脚本取代。
+
+### 9.1 脚本清单
+
+| 文件 | 作用 |
+|---|---|
+| `dfs_park.js` | **主求解器**。DFS + 记忆化，把「移出」建进搜索树。`PREFIX` 前缀回放、`SHUFFLE_AT`/`SHUFFLE_SEED` 打到第 K 步再洗、`DUMP_BEST=1` 未解出时导出最深合法前缀 |
+| `beam_park.js` | 束搜索版，小/中盘验证通过，176 层大盘走不到底（保留作对照） |
+| `sweep_park.js` | 批量测「+N 次移出」的可解率 |
+| `sweep_shuffle.js` | 保持层叠、随机重排花色，测 7 格纯点击 / +N 次移出的可解率 |
+| `sweep_shuffle_at.js` | 同上，但先回放 `PREFIX` 到第 K 步再洗（模拟「打到卡住再洗」） |
+| `use_park.js` / `use_shuffle.js` | 页面内执行单次移出 / 单次洗牌 |
+| `mod_infinite_props.js` | **无限道具注入模块**：移出 / 撤回 / 洗牌三个计数不再受限（见 9.4） |
+| `mod_props.cmd` | 上面的启动器，`--status` / `--off` |
+| `choose.ps1` | 无解时的 7 项处置弹窗（WinForms，走 `powershell -STA`） |
+| `.sim2.js` | 独立执行器，只做合法性否证，比 `bot.js` 轻 |
+| `.sim_moveout.js` / `.exp_moveout.js` | 移出语义的实验用最小场景 |
+
+### 9.2 三处建模修正
+
+| 原假设 | 实际（读客户端 + 实机对拍） |
+|---|---|
+| 移出的牌永久离场 | 暂存区**可点回手牌**，每格只有顶牌可点，凑满 3 张照样消 |
+| 移出的牌接在手牌末尾 | 新牌插在「同花色最后一张之后」（`getNewPosit()`），插入位置影响后续三消 |
+| 手牌满 7 时仍可移出 | 手牌满 7 时**一切点击被拒**，移出按钮也不例外 |
+
+**由此产生的 bug（已修，此前所有含移出的结果作废）**：路径索引数组按路径深度分配了 `n+8`，而含移出后路径可达 `n + 4×PARK_MAX`，`candBuf[base+c]` 读出 `undefined`，表现为 `bestLeft=-1`、同一张牌被点两次。现统一为 `MAXPATH = n + 4*PARK_MAX + 8`，`candBuf`/`recPos`/`recCru`/`recTyp`/`pathKind`/`pathVal`/`pathExtra` 共用。
+
+**纪律**：所有求解器改动先 `node --check`，再用已知可解盘回归（12 张竖列：`park=1` 16 步 / `park=2` 20 步；114 张中盘：122 步 / 2 次移出 / 6 次取回），最后 `verify_plan3.js` + `.sim2.js` 双验。
+
+### 9.3 洗牌的真实语义与定量结论
+
+客户端 `chessboard.updateBlockArea()` / `mapShuffle` **只重排花色**：位置不动、层叠不动、各花色张数守恒。所以
+
+- 「洗牌无效」是错的——它会改变「哪些牌能立刻三消」，也就改变了通关需要的格数；
+- 但**峰值需求不会系统性下降**，只是换一副花色重新抽签。
+
+261 张那关（levelKey 100026）实测：层叠是**固定模板**，三次独立读盘（原始 / 洗牌后 / 重开后）位置与层数逐张一致，只有花色不同；`plan_stats` 峰值恒为 11。容量算术：手牌 7 + 每次移出 3 格 ⇒ 1 次=10、2 次=13、3 次=16，本关需 11 ⇒ 1 次不够。
+
+洗牌 × 移出批量实验（合计 **156 个变体，0 命中**）：
+
+| 配置 | 变体数 | 命中 |
+|---|---|---|
+| 7 格纯点击，从根洗 | 60 | 0 |
+| 7 格 + 1 次移出，从根洗 | 60 | 0 |
+| 7 格 + 2 次移出，从根洗 | 8 | 0 |
+| 7 格 + 1 次移出，K=100/130/160 中途洗 | 12 | 0 |
+| 7 格 + 2 次移出，K=110/140 中途洗 | 16 | 0 |
+
+结论：洗牌确实存在可解的花色分配，但命中率低于 1/60，游戏给的洗牌次数远不够。
+
+**前缀接力**也做过：`DUMP_BEST=1` 导出 7 格 DFS 最深合法前缀（163 步 / 剩 98 张），从该前缀出发 2 次、3 次移出均**快速穷尽**（约 976K 节点，非预算耗尽）——属于「证明无解」，不是「没搜到」。
+
+### 9.4 无限道具（`mod_infinite_props.js`）
+
+从运行中的客户端读出的三处闸门（class `gameUiLayer`）：
+
+| 闸门 | 位置 | 补丁 |
+|---|---|---|
+| 免费次数 | `checkPropUseLimit(t)` 返 `true` 即拦下，读 `sheepMark.propRemove/Cancel/RandomCount` 与 `getGamePropUseLimit(t)` 比较 | 原型恒返 `false` |
+| 拥有数量 | `removeEndFunc/cancelEndFunc/randomEndFunc` 里 `userData.prop_* >= 1` 才算，否则 `showPropPop`（看广告/分享） | `userData.prop_*` 钉 `9999` |
+| 按钮外观 | `game-ui-item-btn.setData(owned, used, limit)`，`used>=limit` → 遮罩+视频图标 | 每秒 `setGameLayerUiData()` 重画 |
+
+三者的实际动作都是**本地执行**、不走服务端：`crushArea.moveOutBlock()` / `.cancelOneStep()` / `chessboard.updateBlockArea()`（联网的 `eventUseItemReq` 分支对应的 `uiLayer` 节点 `activeInHierarchy=false`）。
+
+另在三个按钮的 `callBack` 外包一层，点击前后各补一次计数，避免「点得比看门狗快」。`--off` 全量还原。
+
+> 副作用：`userData` 由 `saveUserData()` 写回本地存档，`9999` 会持久；服务端若在进关时下发库存会覆盖，看门狗 1 秒内补回，只影响当次会话。
+
+### 9.5 调试踩坑
+
+| 现象 | 根因 |
+|---|---|
+| 洗完牌「看不到变化」 | 指纹用了 `parts.sort()` 后的多重集——洗牌是花色置换、多重集不变。必须用 `layer-rol-row:type` 这种**位置相关**指纹 |
+| `PREFIX` 文件缺失 | 之前清理时误删，静默降级成「从头解」；现读不出即 `FATAL` 退出 2 |
+| `sweep_shuffle_at.js` 的 `K=0` 变成 K=163 | `PREFIX_MAX=0` 在 `dfs_park` 里是「不限」语义 |
+| 移出计划花色 > 31 静默出错 | 3 张牌花色用 5 bit 打包进 Int32，超界即 `FATAL` |
+| `SLICE_MS` 分片重启从未生效 | 两版实现分别踩了「重启即过期」和「绝对时间戳 vs 相对耗时」；已整体移除，改用**多进程多随机种子**并行 |
+
+
 
 

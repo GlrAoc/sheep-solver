@@ -26,3 +26,11 @@ logs/
 /*.board.json
 /raw*.json
 /now.plan.json
+
+# 实验日志与批量扫描结果（.h10*.log / .w94*.log / .sa_results.json 等，可重跑）
+*.log
+/.*.json
+/.*.txt
+
+# 一次性探针脚本：只为读出某个运行时字段而写，结论已落进 SOLVER.md / RUNBOOK 后即无用
+/.probe_*.js
