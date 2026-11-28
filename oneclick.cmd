@@ -52,6 +52,9 @@ echo     oneclick.cmd                  clear levels until the run ends
 echo     oneclick.cmd --dry            solve only, do not click
 echo     oneclick.cmd --seeds 6        more parallel search seeds
 echo     oneclick.cmd --solve-sec 90   longer per-seed budget
+echo     oneclick.cmd --park 2         allow the solver to plan 2 "move out" props
+echo     oneclick.cmd --allow-props    pre-authorise prop plans (no popup)
+echo     oneclick.cmd --no-park        never plan a prop, pure clicking only
 echo     oneclick.cmd --wait-sec 120   give up if no level in 120s
 echo     oneclick.cmd --diagnose       print proxy/game state and exit
 echo     oneclick.cmd --start-proxy    start the proxy and exit

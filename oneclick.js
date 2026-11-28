@@ -20,6 +20,29 @@
  *   4. 只接受纯点击方案；一旦方案里出现道具步，直接中止。
  *   5. 多路不同种子并行，取节点最少的那条——实测差距可达 80 倍。
  *   6. bot 每步自校验状态签名，失配即 drift 停止，所以不会盲点。
+ *   7. 无解时不再直接退出，而是弹窗让用户选用哪个道具（见下方"道具交互"）。
+ *
+ * 无解处置（v1.3）：
+ *   求解器不建模道具（状态只有 removed+hand），所以"用道具"只有一个含义——
+ *   真的在游戏里执行一次道具动作，然后重新读牌求解。弹窗提供四个选项：
+ *     0 使用移出道具  crushArray.moveOutBlock()；手牌为空时不可用（游戏机制）
+ *     1 使用洗牌道具  chessboard.updateBlockArea()（见下）
+ *     2 默认模式      不用道具，换一组种子重新求解（最多重试 5 轮）
+ *     3 退出脚本      exit 2
+ *   PowerShell 不可用时自动降级为命令行数字选择，功能等价。
+ *
+ * 洗牌实现（2026-11-26 实测修正，重要）：
+ *   早期版本用反射搜"名字含 shuffle 的方法"，命中的全是渲染层的
+ *   _resetAssembler / _resetFrame——调完牌面纹丝不动，属于假洗牌。
+ *   真正的洗牌在 chessboard 组件的 updateBlockArea()：
+ *     收集所有 isShuffleBlock 的牌的 type → mapShuffle 打乱 → beginRotate 逐张换色。
+ *   语义：**位置不变、花色重排，每类数量守恒**（实测 261 张里 241~248 张换色）。
+ *   所以洗牌不能改变层叠结构，容量不够时怎么洗都解不了——这就是下面 diag 的意义。
+ *
+ * 容量诊断（v1.3）：
+ *   无解时会用 12 格手牌放宽试跑一次，读出方案的手牌峰值。
+ *   峰值 > 7 说明差额只能由「移出」补（手牌前 3 张挪到暂存区，手牌 -3），
+ *   弹窗会直接写明"需要 N 格、客户端只有 7 格"，避免用户以为洗牌次数不够。
  *
  * 退出码：0=至少清完一关且全部成功；1=通道/前置不满足；2=某一关无解；3=执行异常中止
  */
@@ -54,6 +77,8 @@ const TICK = num('tick', 150);
 const SEED_BASE = num('seed-base', 910000);
 const DRY = !!opt('dry', false);
 const ALLOW_PROPS = !!opt('allow-props', false);
+const PARK_MAX = num('park', 1);          // how many "move out" uses the solver may plan
+const NO_PARK = !!opt('no-park', false);  // never plan a prop, pure clicking only
 
 const HAND_MAX = 7;
 const WAIT_NEXT_SEC = 20;      // 清关后等下一关出现的时间
@@ -408,6 +433,167 @@ function inject(file) {
   return /\[inject\] done/.test(r.out) && !/EXCEPTION/.test(r.out);
 }
 
+// ---------------------------------------------------------------- 道具交互
+// 求解器不建模道具（dfs_nopark 只有 removed+hand 状态），因此"用道具"只能是
+// 真的在游戏里执行一次道具动作，然后重新读牌求解。两条通道：
+//   park    crushArray.moveOutBlock()  —— 手牌为空时不可用（游戏机制）
+//   shuffle 运行时反射查找             —— 本 build 无稳定导出，需人工兜底
+const PS_EXE = path.join(process.env.SystemRoot || 'C:\\Windows',
+  'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
+const CHOOSE_PS1 = path.join(DIR, 'choose.ps1');
+const PROP_NAMES = ['使用移出道具', '使用洗牌道具', '默认模式',
+  '无限移出（装 mod）', '无限撤回（装 mod）', '无限洗牌（装 mod）', '退出脚本'];
+const CHOICE_MAX = PROP_NAMES.length - 1;   // 6
+
+function consoleChoice(prompt) {
+  process.stdout.write('\n' + prompt);
+  const buf = Buffer.alloc(64);
+  try {
+    const n = fs.readSync(0, buf, 0, 63, null);
+    const v = parseInt(buf.slice(0, n).toString().trim(), 10);
+    return (v >= 0 && v <= CHOICE_MAX) ? v : CHOICE_MAX;
+  } catch (e) {
+    return CHOICE_MAX;
+  }
+}
+
+function runPopup(msgFile, extraArgs) {
+  const r = spawnSync(PS_EXE, ['-NoProfile', '-STA', '-WindowStyle', 'Hidden',
+    '-ExecutionPolicy', 'Bypass', '-File', CHOOSE_PS1, '-MsgFile', msgFile].concat(extraArgs || []), {
+    encoding: 'utf8', timeout: 900000
+  });
+  return r;
+}
+
+/** 弹窗里追加"移出道具试算结果"，让用户在选之前就知道道具够不够 */
+function parkLine(info) {
+  if (!info.park) return '';
+  if (info.park.found) {
+    return `\n\n已试算：用 ${info.park.parkMax} 次「移出」能解出整盘方案（${info.park.steps} 步，含点回暂存牌的步骤）。`
+      + `\n选第一项就直接执行这套方案。`;
+  }
+  return `\n\n已试算：${info.park.parkMax} 次「移出」仍然解不出。`
+    + `\n7 格手牌 + 3 格暂存 = 10 格在飞，这盘还差得更多。`
+    + `\n选第一项会继续加码到 ${info.park.parkMax + 1}~3 次移出再试；`
+    + `\n次数不够就选「无限移出 · 开 mod」（加到 6 次），或「无限洗牌 · 开 mod」连洗换花色。`;
+}
+
+/** 询问处置方式，返回 0..3；弹窗不可用时降级为命令行输入 */
+function askPropChoice(info) {
+  const msgFile = path.join(DIR, '.oneclick_choice.msg.txt');
+  const head = `第 ${info.stageNo} 关 · 关卡 ${info.levelKey} · 场上 ${info.blocksN} 张` +
+    (info.attempt > 1 ? `（第 ${info.attempt} 次尝试）` : '');
+  const why = info.exhausted
+    ? '求解器已证明：该局面在 7 格手牌、不使用道具的前提下无解。'
+    : '搜索预算已耗尽，未找到解（但未证明无解）。';
+  const gap = info.handNeed ? info.handNeed - HAND_MAX : 0;
+  let diag = '';
+  if (info.handNeed && gap > 0 && gap <= 3) {
+    diag = `\n\n诊断：这盘牌需要 ${info.handNeed} 格工作区，客户端手牌只有 ${HAND_MAX} 格。`
+      + `\n差额 ${gap} 格正好能用「移出」补上：暂存区 3 格 + 手牌 7 格。`
+      + `\n选第一项即可：脚本把「移出」直接算进整盘方案（含"点回暂存牌"的步骤），一次跑完。`;
+  } else if (info.handNeed && gap > 3) {
+    const floor = Math.ceil(gap / 3);
+    diag = `\n\n诊断：这盘牌需要 ${info.handNeed} 格工作区，客户端手牌只有 ${HAND_MAX} 格。`
+      + `\n按容量算术：手牌 ${HAND_MAX} + 每次移出 3 格（暂存可堆叠），至少要 ${floor} 次移出才够。`
+      + (floor > 3
+        ? `\n${floor} 次已超过游戏给的移出次数上限 —— 要么重开这一关换一副牌面，`
+          + `\n要么选「无限移出 · 开 mod」把次数限制直接拿掉（脚本会按最多 6 次移出重算）。`
+        : `\n可以选第一项让它按 ${floor} 次移出重算（此前的 1 次移出必失败，已跳过）。`)
+      + `\n洗牌只重排花色、不改层叠结构，峰值需求不会因洗牌下降；` +
+        `\n但次数无限时可以连着洗，换到"薄"的那一副就有机会（第 6 项）。`;
+  } else if (info.handNeed && gap <= 0) {
+    diag = `\n\n诊断：这盘只需 ${info.handNeed} 格，在 ${HAND_MAX} 格以内。`
+      + `\n属于搜索预算不足而不是无解 —— 选「默认模式」加 --solve-sec 再试。`;
+  }
+  try { fs.writeFileSync(msgFile, `${head}\n\n${why}${diag}${parkLine(info)}\n\n请选择处置方式：`, 'utf8'); } catch (e) { }
+
+  let code = -1;
+  if (fs.existsSync(PS_EXE) && fs.existsSync(CHOOSE_PS1)) {
+    const r = runPopup(msgFile, []);
+    if (r.error) {
+      log('[choice] popup unavailable: ' + r.error.message, '弹窗不可用，改用命令行选择');
+    } else {
+      const m = /\b([0-6])\b/.exec(String(r.stdout || '').trim());
+      if (m) code = parseInt(m[1], 10);
+      else log('[choice] popup returned nothing code=' + r.status, '弹窗无返回，改用命令行选择');
+    }
+  } else {
+    log('[choice] choose.ps1 or powershell not found', '缺少弹窗组件，改用命令行选择');
+  }
+
+  if (code < 0) code = consoleChoice('0=移出道具  1=洗牌  2=默认模式  3=无限移出  4=无限撤回  5=无限洗牌  6=退出脚本  > ');
+  log(`[choice] user picked ${code}`, `你的选择：${PROP_NAMES[code]}`);
+  return code;
+}
+
+/** 确认框：等待用户在游戏里完成手动操作 */
+function askConfirm(text) {
+  const msgFile = path.join(DIR, '.oneclick_confirm.msg.txt');
+  try { fs.writeFileSync(msgFile, text, 'utf8'); } catch (e) { }
+  if (!fs.existsSync(PS_EXE) || !fs.existsSync(CHOOSE_PS1)) {
+    process.stdout.write('\n' + text + '\n按回车继续...');
+    try { const b = Buffer.alloc(16); fs.readSync(0, b, 0, 15, null); } catch (e) { }
+    return;
+  }
+  const r = runPopup(msgFile, ['-Confirm']);
+  if (r.error) log('[confirm] popup failed: ' + r.error.message, '确认框不可用，已跳过等待');
+}
+
+/** 在页面内执行道具脚本 */
+function runProp(kind) {
+  const file = kind === 'park' ? 'use_park.js' : 'use_shuffle.js';
+  const r = evalScript(file, null, 25000);
+  if (!r.ok) return { ok: false, err: 'cdp_failed', text: (r.text || '').slice(-200) };
+  return r.data || { ok: false, err: 'no_data' };
+}
+
+// ---------------------------------------------------------------- 无限道具 mod
+// 弹窗第 3/4/5 项：先把这个 mod 注进去，再按对应策略继续。
+// mod 只改"按钮能不能点"（计数 + 免费次数闸门 + 按钮外观），脚本自己走的
+// moveOutBlock() / updateBlockArea() 本来就绕开 UI，所以要的是"你手动也能随便点"。
+const INF_MOD_FILE = 'mod_infinite_props.js';
+let infModOn = false;
+function installInfMod() {
+  if (infModOn) return true;
+  const r = evalScript(INF_MOD_FILE, null, 30000);
+  const d = r && r.data;
+  if (r.ok && d && d.ok) {
+    infModOn = true;
+    const inv = d.inv || {};
+    log(`[inf] ${INF_MOD_FILE} installed ui=${d.ui} inv=${inv.remove}/${inv.cancel}/${inv.random}`,
+      `无限道具已开启：移出/撤回/洗牌 次数锁在 ${inv.remove || 9999}，游戏里随便点`);
+    return true;
+  }
+  log('[inf] install failed: ' + String(r.text || '').slice(-200),
+    '无限道具挂载失败，先按普通道具流程继续（mod_props.cmd 可手动补装）');
+  return false;
+}
+
+/**
+ * 诊断：这盘牌到底需要几格工作区才能清空？
+ *
+ * 用放宽的手牌上限试跑一次——能解就说明"7 格无解"是容量问题而不是搜索问题。
+ * 峰值 > HAND_MAX 时差额只能由「移出」道具补（把手牌前 3 张挪到暂存区，手牌 -3）。
+ * 这个数字直接回答"为什么洗牌也过不了"：洗牌只换花色不改层叠结构，容量不够就是不够。
+ */
+function diagnoseHandNeed(boardFile) {
+  const probePlan = path.join(DIR, `.diag_cap_${Date.now()}.plan.json`);
+  try { fs.unlinkSync(probePlan); } catch (e) { }
+  const r = runN(['dfs_nopark.js', boardFile, '20', '3000000000', String(SEED_BASE + 777)], {
+    timeout: 70000,
+    env: { HAND_MAX: '12', PLAN_OUT: probePlan }
+  });
+  if (!/SOLVED/.test(r.out) || !fs.existsSync(probePlan)) {
+    try { fs.unlinkSync(probePlan); } catch (e) { }
+    return null;
+  }
+  const st = runN(['plan_stats.js', probePlan], { timeout: 30000 });
+  try { fs.unlinkSync(probePlan); } catch (e) { }
+  const m = /peak hand\s*:\s*(\d+)/.exec(st.out);
+  return m ? +m[1] : null;
+}
+
 // ---------------------------------------------------------------- 步骤
 function probe(waitMs) {
   const r = evalScript('probe_state.js', null, waitMs);
@@ -528,6 +714,19 @@ function botStatus() {
   return r.ok ? r.data : null;
 }
 
+/**
+ * 牌面指纹：位置+花色。洗牌只改花色不改位置，所以必须把 type 算进去，
+ * 否则"洗完还是原来那盘"会被误判成"牌面变了"。
+ */
+function boardFingerprint(d) {
+  if (!d || !Array.isArray(d.blocks)) return null;
+  const parts = d.blocks.map((b) => `${b.id}:${b.type}`).sort();
+  const s = parts.join('|');
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+  return `${d.blocks.length}#${(h >>> 0).toString(16)}`;
+}
+
 /** 并行多路求解，返回 {solved, best, results} */
 function solveAll(boardFile, round) {
   const seeds = [];
@@ -578,6 +777,50 @@ function verify(boardFile, planFile) {
   return { win: /RESULT\s*:\s*WIN/.test(r.out), text: r.out };
 }
 
+/**
+ * 带「移出」道具的求解：dfs_park 把 3 个暂存槽当作动作空间的一部分
+ * （可多次移出、暂存区顶牌可点回手牌），因此解出来的方案天然含 park/tray 步骤。
+ * 与 dfs_nopark 并列使用：先试纯点击，失败再放开道具。
+ */
+function solveWithPark(boardFile, round, parkMax) {
+  const PM = parkMax || PARK_MAX;
+  const { spawn } = require('child_process');
+  const jobs = [];
+  for (let i = 0; i < SEEDS; i++) {
+    const seed = SEED_BASE + 500000 + PM * 1000 + round * 10 + i * 11;
+    jobs.push({ seed, outFile: path.join(DIR, `auto_${STAMP}_park${PM}_s${seed}.plan.json`) });
+  }
+  return Promise.all(jobs.map((j) => new Promise((resolve) => {
+    const t0 = Date.now();
+    const p = spawn(NODE, ['dfs_park.js', boardFile, String(SOLVE_SEC), '9000000000', String(j.seed)], {
+      cwd: DIR,
+      env: Object.assign({}, process.env, {
+        HAND_MAX: String(HAND_MAX),
+        PARK_MAX: String(PM),
+        MEMO_BITS: '26',
+        PLAN_OUT: j.outFile
+      })
+    });
+    let buf = '';
+    p.stdout.on('data', (d) => { buf += d.toString(); });
+    p.stderr.on('data', (d) => { buf += d.toString(); });
+    const killer = setTimeout(() => { try { p.kill(); } catch (e) { } }, (SOLVE_SEC + 25) * 1000);
+    p.on('close', () => {
+      clearTimeout(killer);
+      const m = /SOLVED steps=(\d+) board=(\d+) tray=(\d+) park=(\d+) nodes=(\d+)/.exec(buf);
+      resolve({
+        seed: j.seed, file: j.outFile, code: 0,
+        solved: !!m && fs.existsSync(j.outFile),
+        steps: m ? +m[1] : 0, parks: m ? +m[4] : 0, nodes: m ? +m[5] : 0,
+        sec: ((Date.now() - t0) / 1000).toFixed(1)
+      });
+    });
+  }))).then((results) => {
+    const solved = results.filter((r) => r.solved).sort((a, b) => a.nodes - b.nodes);
+    return { best: solved[0] || null, results };
+  });
+}
+
 function applyPlan(planFile) {
   const r = runN(['apply_plan.js', planFile], { timeout: 180000, env: CDP });
   const m = /ok steps=(\d+) missing=(\d+)/.exec(r.out);
@@ -609,42 +852,242 @@ async function playStage(stageNo, st) {
   if (!st.board.init || !st.board.blocks) die(1, 'no active level (init=false or blocks=0)', '当前不在关卡内：请手动点进关卡（或点“再来一次”）后重跑');
 
   const levelKey = st.board.levelKey;
-  const blocksN = st.board.blocks;
-  log(`[stage ${stageNo}] level=${levelKey} blocks=${blocksN}`, `第 ${stageNo} 关：关卡号 ${levelKey}，场上 ${blocksN} 张`);
+  log(`[stage ${stageNo}] level=${levelKey} blocks=${st.board.blocks}`,
+    `第 ${stageNo} 关：关卡号 ${levelKey}，场上 ${st.board.blocks} 张`);
 
-  // 2) 转储真实牌面
-  const dumpFile = path.join(DIR, `auto_${STAMP}_stage${stageNo}.board.json`);
-  const d = dumpBoard(dumpFile);
-  if (!d || !Array.isArray(d.blocks)) die(1, 'dump failed', '读取牌面失败');
-  if (d.hand.length || d.traySlots.some((s) => s.length)) {
-    die(1, `dirty state hand=${d.hand.length} tray=${JSON.stringify(d.traySlots.map((s) => s.length))}`,
-      '手牌或托盘不为空，无法使用"整盘解"；请先清空或换一局');
-  }
-  if (d.levelKey !== levelKey) log(`[warn] levelKey changed during dump ${levelKey} -> ${d.levelKey}`);
+  const MAX_TRY = 5;
+  let maxTry = MAX_TRY;   // 无限洗牌/无限移出会把重试轮次放开
+  let blocks = null, boardFile = null, best = null, blocksN = 0, seedRound = 0;
+  let prevFp = null, expectChange = false;
+  let propsGranted = false, parkReady = false;
 
-  // 3) 转成求解器输入
-  const boardFile = path.join(DIR, `auto_${STAMP}_stage${stageNo}.solve.json`);
-  const blocks = d.blocks.map((b, i) => ({
-    id: b.id, rolNum: b.rolNum, rowNum: b.rowNum, layerNum: b.layerNum,
-    moldType: 1, cardId: i, type: b.type, covered: false
-  }));
-  fs.writeFileSync(boardFile, JSON.stringify({ seed: null, blocks }), 'utf8');
+  for (let attempt = 1; ; attempt++) {
+    if (attempt > maxTry) {
+      die(2, `gave up after ${maxTry} attempts`, `连续 ${maxTry} 次尝试都没有得到方案，已停止。`);
+    }
 
-  // 4) 多路求解
-  const results = await solveAll(boardFile, stageNo);
-  const solved = results.filter((r) => r.solved).sort((a, b) => a.nodes - b.nodes);
-  const summary = results.map((r) => `s${r.seed}:${r.solved ? 'OK/' + r.nodes : 'FAIL/' + (r.bestLeft ?? '-')}`).join(' ');
-  log(`[solve] ${summary}`, `求解：${summary}（OK 后为节点数，FAIL 后为最佳剩余张数）`);
+    // 2) 转储真实牌面
+    const dumpFile = path.join(DIR, `auto_${STAMP}_stage${stageNo}_t${attempt}.board.json`);
+    const d = dumpBoard(dumpFile);
+    if (!d || !Array.isArray(d.blocks)) die(1, 'dump failed', '读取牌面失败');
+    if (d.hand.length || d.traySlots.some((s) => s.length)) {
+      die(1, `dirty state hand=${d.hand.length} tray=${JSON.stringify(d.traySlots.map((s) => s.length))}`,
+        '手牌或托盘不为空，无法使用"整盘解"；请先清空或换一局');
+    }
+    if (d.levelKey !== levelKey) log(`[warn] levelKey changed during dump ${levelKey} -> ${d.levelKey}`);
 
-  if (!solved.length) {
+    // 2b) 洗牌后必须证明牌面真的变了，否则不允许把它当成"换了一盘"
+    const fp = boardFingerprint(d);
+    if (expectChange && prevFp !== null && fp === prevFp) {
+      die(3, `shuffle had no effect (fp=${fp})`,
+        '洗牌调用成功了，但牌面一张都没变——说明这条洗牌路径在本局无效。\n'
+        + '请手动在游戏里点一次「洗牌」，然后重跑脚本。');
+    }
+    if (expectChange && prevFp !== null && fp !== prevFp) {
+      log(`[prop] shuffle verified fp ${prevFp} -> ${fp}`, '洗牌生效：牌面已重排');
+    }
+    prevFp = fp;
+    expectChange = false;
+
+    // 3) 转成求解器输入
+    boardFile = path.join(DIR, `auto_${STAMP}_stage${stageNo}_t${attempt}.solve.json`);
+    blocks = d.blocks.map((b, i) => ({
+      id: b.id, rolNum: b.rolNum, rowNum: b.rowNum, layerNum: b.layerNum,
+      moldType: 1, cardId: i, type: b.type, covered: false
+    }));
+    blocksN = blocks.length;
+    fs.writeFileSync(boardFile, JSON.stringify({ seed: null, blocks }), 'utf8');
+
+    // 4) 多路求解
+    const results = await solveAll(boardFile, stageNo + seedRound * 100);
+    const solved = results.filter((r) => r.solved).sort((a, b2) => a.nodes - b2.nodes);
+    const summary = results.map((r) => `s${r.seed}:${r.solved ? 'OK/' + r.nodes : 'FAIL/' + (r.bestLeft ?? '-')}`).join(' ');
+    log(`[solve] ${summary}`, `求解：${summary}（OK 后为节点数，FAIL 后为最佳剩余张数）`);
+
+    if (solved.length) { best = solved[0]; break; }
+
+    // ---- 无解：先诊断差多少格，再弹窗 ----
     const exhausted = results.some((r) => r.code === 2);
-    die(2, exhausted ? 'UNSOLVABLE without props' : 'search budget exhausted',
-      exhausted
-        ? '该局面在 7 格手牌、不用道具的前提下已被证明无解。建议用一次「洗牌」后重跑——实测洗牌能把死局变成秒解局。'
-        : '没搜到解，但也没证明无解（预算耗尽）。可以加 --solve-sec 或 --seeds 再试；或者直接洗牌。');
+    const handNeed = diagnoseHandNeed(boardFile);
+    if (handNeed !== null) {
+      if (handNeed > HAND_MAX) {
+        log(`[diag] needs ${handNeed}-slot workspace, client hand=${HAND_MAX}`,
+          `诊断：这盘需要 ${handNeed} 格工作区，客户端只有 ${HAND_MAX} 格 —— 纯点击过不了，必须用移出`);
+      } else {
+        log(`[diag] needs ${handNeed}-slot workspace (within ${HAND_MAX})`,
+          `诊断：只需 ${handNeed} 格，在 ${HAND_MAX} 格以内，属于搜索预算不足`);
+      }
+    } else {
+      log('[diag] no solution even with 12-slot workspace',
+        '诊断：即使放宽到 12 格也没有解，这盘牌数据可能异常');
+    }
+    let action = null;
+    parkReady = false;
+
+    // 容量下界是可靠的算术：手牌 7 格 + 每次移出 3 格（暂存可堆叠）。
+    // 需要 N 格时，至少 ceil((N-7)/3) 次移出才有资格谈解，低于这个数的搜索纯属浪费。
+    const PARK_CAP = 3;
+    const parkFloor = handNeed ? Math.max(1, Math.ceil((handNeed - HAND_MAX) / 3)) : 1;
+    const parkHopeless = parkFloor > PARK_CAP;
+
+    let parkProbe = null, parkLevel = Math.max(1, Math.min(parkFloor, PARK_CAP));
+    if (!NO_PARK && !parkHopeless) {
+      parkProbe = await solveWithPark(boardFile, attempt, parkLevel);
+      log(`[park] probe parkMax=${parkLevel} (floor from handNeed=${handNeed}) -> ` +
+        `${parkProbe.best ? 'PLAN FOUND' : 'no plan'}`,
+        parkProbe.best
+          ? `已试算：用 ${parkLevel} 次「移出」能解出整盘方案（${parkProbe.best.steps} 步）`
+          : `已试算：${parkLevel} 次「移出」也不够`);
+    } else if (parkHopeless) {
+      log(`[park] skipped: handNeed=${handNeed} needs ${parkFloor} parks, game gives ${PARK_CAP}`,
+        `按算术这盘至少要 ${parkFloor} 次「移出」（${HAND_MAX} + 3×${parkFloor} < ${handNeed}），` +
+        `超出道具上限，已跳过无意义的搜索`);
+    }
+
+    while (!action) {
+      const pick = askPropChoice({
+        stageNo, levelKey: d.levelKey, blocksN, exhausted, attempt, handNeed,
+        park: parkProbe ? { parkMax: parkLevel, found: !!parkProbe.best, steps: parkProbe.best ? parkProbe.best.steps : 0 } : null
+      });
+
+      if (pick === 6) {
+        die(2, exhausted ? 'UNSOLVABLE without props (user exit)' : 'search budget exhausted (user exit)',
+          '你选择退出。' + (exhausted
+            ? '该局面在 7 格手牌、不用道具的前提下已被证明无解。'
+            : '没搜到解，但也没证明无解。'));
+      }
+
+      if (pick === 0) {
+        // 「移出」不再先打再读牌 —— 那时暂存区有牌，整盘解不可用。
+        // 改成让 dfs_park 直接把移出算进方案：手牌 7 格 + 暂存 3 格 = 10 格在飞。
+        let pr = parkProbe || await solveWithPark(boardFile, attempt, parkLevel || PARK_MAX);
+        if (!pr.best) {
+          // 逐级加码：1 次不够就 2 次、3 次（游戏里实际能用几次由账号决定）
+          while (!pr.best && parkLevel < 3) {
+            parkLevel++;
+            log(`[park] escalate parkMax=${parkLevel}`, `再试：允许 ${parkLevel} 次移出`);
+            pr = await solveWithPark(boardFile, attempt, parkLevel);
+          }
+          parkProbe = pr;
+        }
+        if (pr.best) {
+          best = pr.best;
+          propsGranted = true;
+          log(`[prop] park plan found seed=${pr.best.seed} steps=${pr.best.steps} ` +
+            `park=${pr.best.parks} nodes=${pr.best.nodes}`,
+            `用「移出」算出方案：${pr.best.steps} 步，含 ${pr.best.parks} 次移出`);
+          parkReady = true;
+          break;
+        }
+        const mv = runProp('park');
+        if (mv.err === 'hand_empty') {
+          log('[prop] no park plan and the hand is empty',
+            `按 ${PARK_MAX} 次移出也解不出这盘（手牌为空时移出本身也用不了）。`);
+        } else {
+          log('[prop] no park plan', `按 ${PARK_MAX} 次移出也解不出这盘。`);
+        }
+        continue;
+      }
+
+      if (pick === 1) {
+        const r = runProp('shuffle');
+        if (r.ok) {
+          log(`[prop] shuffle called cards=${(r.before && r.before.cards) || '?'} async=${r.async}`,
+            `已调用洗牌：chessboard.updateBlockArea()，涉及 ${(r.before && r.before.cards) || '?'} 张牌`);
+          await sleep(4000); // beginRotate 换牌动画
+          expectChange = true;
+          action = 'shuffle';
+        } else if (r.err === 'shuffle_in_progress') {
+          log('[prop] shuffle already running, wait and re-dump', '上一次洗牌动画还没结束，等它完成后重新读牌');
+          await sleep(3000);
+          expectChange = true;
+          action = 'shuffle';
+        } else {
+          log('[prop] auto shuffle failed: ' + r.err, `自动洗牌失败（${r.err}）。`);
+          askConfirm('自动洗牌不可用。\n\n请在游戏里手动点一次「洗牌」道具，\n牌面发生变化后点下面的按钮继续。');
+          expectChange = true;
+          action = 'shuffle';
+        }
+      }
+
+      if (pick === 2) {
+        seedRound++;
+        log(`[mode] default retry, seed round=${seedRound}`,
+          '默认模式：不使用道具，换一组随机种子重新求解');
+        action = 'retry';
+      }
+
+      // ---- 3/4/5：先挂 mod，再按各自策略继续 ----
+      // 移出次数不再受账号限制（按钮恒 9999），容量上界可以从 3 次放到 6 次，
+      // 但暂存区只有 3 个槽、每槽还是堆叠，所以 6 次是工程上的上限，不是游戏限制。
+      if (pick === 3) {
+        if (!installInfMod()) continue;
+        const LVL_CAP = 6;
+        let lvl = Math.max(3, parkLevel || 3);
+        let pr = (parkProbe && parkLevel >= lvl) ? parkProbe
+          : await solveWithPark(boardFile, attempt, lvl);
+        while (!pr.best && lvl < LVL_CAP) {
+          lvl++;
+          log(`[inf] park escalate parkMax=${lvl}`, `无限移出：按 ${lvl} 次移出重算`);
+          pr = await solveWithPark(boardFile, attempt, lvl);
+        }
+        if (pr.best) {
+          best = pr.best;
+          propsGranted = true;
+          parkReady = true;
+          log(`[inf] park plan seed=${pr.best.seed} steps=${pr.best.steps} park=${pr.best.parks}`,
+            `无限移出算出方案：${pr.best.steps} 步，含 ${pr.best.parks} 次移出（游戏里次数已经不是问题）`);
+          break;
+        }
+        // 移出解决的是"容量"，解决不了"顺序"：直接顺势洗一次，换个花色分布再解
+        log(`[inf] no plan even with ${lvl} parks, shuffle instead`,
+          `${lvl} 次移出仍无解 —— 改洗牌换一副花色再解`);
+        maxTry = Math.max(maxTry, attempt + 6);
+        const rs = runProp('shuffle');
+        if (rs.ok || rs.err === 'shuffle_in_progress') {
+          await sleep(4000);
+          expectChange = true;
+          action = 'shuffle';
+        } else {
+          log('[inf] shuffle also failed: ' + rs.err, '洗牌也调不动，请手动点一次「洗牌」后重跑');
+          continue;
+        }
+      }
+
+      if (pick === 4) {
+        if (!installInfMod()) continue;
+        // 撤回是"点击的逆操作"，改变不了可解性；它的价值在游戏内手动试错。
+        // 所以这里只负责把次数放开，然后换种子重解。
+        seedRound++;
+        maxTry = Math.max(maxTry, attempt + 3);
+        log('[inf] undo unlimited, retry with new seeds',
+          '无限撤回已开：游戏里点错可以一直回退；脚本这边换一组种子重新求解');
+        action = 'retry';
+      }
+
+      if (pick === 5) {
+        if (!installInfMod()) continue;
+        // 洗牌只重排花色，但"洗到一副薄的就解得出"——次数无限，就自动连着洗
+        maxTry = Math.max(maxTry, attempt + 12);
+        const rs = runProp('shuffle');
+        if (rs.ok || rs.err === 'shuffle_in_progress') {
+          log(`[inf] shuffle round ${attempt}`, `无限洗牌：第 ${attempt} 次重排，洗完重解`);
+          await sleep(4000);
+          expectChange = true;
+          action = 'shuffle';
+        } else {
+          log('[inf] auto shuffle failed: ' + rs.err, `自动洗牌失败（${rs.err}）`);
+          askConfirm('自动洗牌不可用。\n\n请在游戏里点一次「洗牌」，\n牌面变化后点下面的按钮继续。');
+          expectChange = true;
+          action = 'shuffle';
+        }
+      }
+    }
+
+    if (parkReady) break;
+    if (action === 'shuffle') log('[prop] board reshuffled, re-dumping', '牌面已重排，重新读牌');
   }
 
-  const best = solved[0];
   log(`[solve] best seed=${best.seed} steps=${best.steps} nodes=${best.nodes} ${best.sec}s`,
     `采用种子 ${best.seed} 的方案：${best.steps} 步，${best.nodes} 节点，耗时 ${best.sec}s`);
 
@@ -657,8 +1100,12 @@ async function playStage(stageNo, st) {
   const plan = JSON.parse(fs.readFileSync(best.file, 'utf8'));
   const kinds = {};
   plan.forEach((s) => { kinds[s.kind] = (kinds[s.kind] || 0) + 1; });
-  if (!ALLOW_PROPS && ((kinds.park || 0) + (kinds.tray || 0)) > 0) {
+  if (!ALLOW_PROPS && !propsGranted && ((kinds.park || 0) + (kinds.tray || 0)) > 0) {
     die(3, 'plan uses props but --allow-props not set', '方案用到了道具，默认不允许，已中止');
+  }
+  if (kinds.park || kinds.tray) {
+    log(`[exec] prop plan: park=${kinds.park || 0} tray=${kinds.tray || 0}`,
+      `本方案会用到道具：移出 ${kinds.park || 0} 次、暂存区取牌 ${kinds.tray || 0} 次`);
   }
   if (plan.length !== blocksN) log(`[warn] plan steps=${plan.length} != blocks=${blocksN}`);
 
